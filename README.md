@@ -22,8 +22,7 @@ Built with **Next.js**, **React**, **Apollo GraphQL**, **Prisma**, **NextAuth**,
 
 ## 🖼️ Demo
 
-_Coming soon._  
-Run locally with the setup steps below.
+🔗 [Live Preview on Vercel](https://motionboard.vercel.app)
 
 ---
 
@@ -44,7 +43,7 @@ Run locally with the setup steps below.
 -   **Drag & Drop**: dnd-kit (`@dnd-kit/core`, `@dnd-kit/sortable`)
 -   **GraphQL (Server)**: @apollo/server + `@as-integrations/next`
 -   **GraphQL (Client)**: Apollo Client
--   **Database / ORM**: Prisma (PostgreSQL/SQLite)
+-   **Database / ORM**: Prisma (PostgreSQL)
 -   **Auth**: NextAuth.js (Google, GitHub) + PrismaAdapter
 -   **Runtime**: Node.js (App Router route handlers)
 
