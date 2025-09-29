@@ -21,9 +21,9 @@ export default async function HomePage() {
                 />
                 <Heading level={1}>Welcome to Motion Board</Heading>
                 <Paragraph className="text-muted">
-                    Your AI-powered resume assistant
+                    Your task and workflow management solution.
                 </Paragraph>
-                <LinkButton href={session ? "/dashboard" : "/login"}>
+                <LinkButton href={session ? "/boards" : "/login"}>
                     {session ? "Go to Dashboard" : "Login / Sign Up"}
                 </LinkButton>
                 <Paragraph className="text-lg text-[var(--color-text) mb-8">

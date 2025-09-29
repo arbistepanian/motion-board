@@ -25,6 +25,7 @@ const typeDefs = gql`
     type Query {
         me: User
         boards: [Board!]!
+        board(id: ID!): Board
         lists(boardId: ID!): [List!]!
         cards(listId: ID!): [Card!]!
     }
@@ -59,20 +60,32 @@ const typeDefs = gql`
         description: String
         position: Int!
         createdAt: DateTime!
+        listId: ID!
     }
 `;
 
-// --- Resolvers (minimal, position = max+1 for new items)
+// --- Resolvers
 const resolvers = {
     Query: {
         me: async (_: unknown, __: unknown, ctx: GraphQLContext) => {
-            console.log("session: ", ctx.session);
-            if (!ctx.session?.user?.id) return null;
-            return prisma.user.findUnique({
-                where: { id: ctx.session.user.id },
-            });
+            const userId = ctx.session?.user?.id;
+            if (!userId) return null;
+            return prisma.user.findUnique({ where: { id: userId } });
         },
-        boards: () => prisma.board.findMany(),
+        boards: async (_: unknown, __: unknown, ctx: GraphQLContext) => {
+            const userId = ctx.session?.user?.id;
+            if (!userId) return [];
+            return prisma.board.findMany({ where: { ownerId: userId } });
+        },
+        board: async (
+            _: unknown,
+            { id }: { id: string },
+            ctx: GraphQLContext
+        ) => {
+            const userId = ctx.session?.user?.id;
+            if (!userId) return null;
+            return prisma.board.findFirst({ where: { id, ownerId: userId } });
+        },
         lists: (_: unknown, { boardId }: { boardId: string }) =>
             prisma.list.findMany({
                 where: { boardId },
@@ -90,22 +103,31 @@ const resolvers = {
             { name }: { name: string },
             ctx: GraphQLContext
         ) => {
-            if (!ctx.session?.user?.id) {
-                throw new Error("Unauthorized");
-            }
+            if (!ctx.session?.user?.id) throw new Error("Unauthorized");
             return prisma.board.create({
                 data: { name, ownerId: ctx.session.user.id },
             });
         },
         createList: async (
             _: unknown,
-            { boardId, title }: { boardId: string; title: string }
+            { boardId, title }: { boardId: string; title: string },
+            ctx: GraphQLContext
         ) => {
+            const userId = ctx.session?.user?.id as string | undefined;
+            if (!userId) throw new Error("Unauthorized");
+
+            const board = await prisma.board.findFirst({
+                where: { id: boardId, ownerId: userId },
+                select: { id: true },
+            });
+            if (!board) throw new Error("Board not found");
+
             const max = await prisma.list.aggregate({
                 where: { boardId },
                 _max: { position: true },
             });
             const position = (max._max.position ?? 0) + 1;
+
             return prisma.list.create({ data: { boardId, title, position } });
         },
         createCard: async (
@@ -114,13 +136,24 @@ const resolvers = {
                 listId,
                 title,
                 description,
-            }: { listId: string; title: string; description?: string }
+            }: { listId: string; title: string; description?: string },
+            ctx: GraphQLContext
         ) => {
+            const userId = ctx.session?.user?.id as string | undefined;
+            if (!userId) throw new Error("Unauthorized");
+
+            const listWithBoard = await prisma.list.findFirst({
+                where: { id: listId, board: { ownerId: userId } },
+                select: { id: true, boardId: true },
+            });
+            if (!listWithBoard) throw new Error("List not found");
+
             const max = await prisma.card.aggregate({
                 where: { listId },
                 _max: { position: true },
             });
             const position = (max._max.position ?? 0) + 1;
+
             return prisma.card.create({
                 data: { listId, title, description, position },
             });
@@ -166,4 +199,16 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(
     }
 );
 
-export { handler as GET, handler as POST };
+type RouteCtx = { params: Promise<unknown> };
+
+export async function GET(req: Request, _ctx: RouteCtx) {
+    return handler(req as unknown as NextRequest);
+}
+
+export async function POST(req: Request, _ctx: RouteCtx) {
+    return handler(req as unknown as NextRequest);
+}
+
+export async function OPTIONS(req: Request, _ctx: RouteCtx) {
+    return handler(req as unknown as NextRequest);
+}

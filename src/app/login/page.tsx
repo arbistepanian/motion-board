@@ -17,7 +17,9 @@ export default function LoginPage() {
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                     <Button
                         variation="secondary"
-                        onClick={() => signIn("google", { callbackUrl: "/" })}>
+                        onClick={() =>
+                            signIn("google", { callbackUrl: "/boards" })
+                        }>
                         <div className="flex items-center justify-center space-x-2">
                             <div>Sign in with Google</div>
                             <Image
@@ -32,7 +34,9 @@ export default function LoginPage() {
                     </Button>
                     <Button
                         variation="secondary"
-                        onClick={() => signIn("github", { callbackUrl: "/" })}>
+                        onClick={() =>
+                            signIn("github", { callbackUrl: "/boards" })
+                        }>
                         <span>Sign in with GitHub</span>
                         <Image
                             loading="lazy"

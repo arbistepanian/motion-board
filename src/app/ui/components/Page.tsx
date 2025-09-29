@@ -11,14 +11,7 @@ interface PageProps extends React.HTMLAttributes<HTMLDivElement> {
     children: React.ReactNode;
 }
 
-export default function Page({
-    title,
-    children,
-    className,
-    userName,
-    userImage,
-    ...props
-}: PageProps) {
+export default function Page({ children, className, ...props }: PageProps) {
     return (
         <div
             className={cn(
@@ -26,7 +19,7 @@ export default function Page({
                 className
             )}
             {...props}>
-            <Header userName={userName} userImage={userImage} title={title} />
+            <Header />
 
             <div className="w-full max-w-4xl px-4">
                 <div className="bg-[var(--color-surface)] text-[var(--color-text)]">
