@@ -14,19 +14,19 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-    title: "Portura Lite",
-    description: "AI-Powered resume assistant",
+    title: "Motion Board",
+    description: "Your task and workflow management solution.",
     openGraph: {
-        title: "Portura Lite",
-        description: "AI-Powered resume assistant to help you shine",
+        title: "Motion Board",
+        description: "Your task and workflow management solution.",
         url: "https://portura-lite.vercel.app/",
-        siteName: "Portura",
+        siteName: "Motion Board",
         images: [
             {
-                url: "https://portura-lite.vercel.app/portura-lite-homepage-hero.jpg",
+                url: "https://motionboard.vercel.app/motion-board-homepage-hero.jpg",
                 width: 1200,
                 height: 630,
-                alt: "Portura Lite Open Graph Image",
+                alt: "Motion Board Open Graph Image",
             },
         ],
         locale: "en_US",
@@ -34,10 +34,10 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: "summary_large_image",
-        title: "Portura Lite",
-        description: "AI-Powered resume assistant to help you shine",
+        title: "Motion Board",
+        description: "Your task and workflow management solution.",
         images: [
-            "https://portura-lite.vercel.app/portura-lite-homepage-hero.jpg",
+            "https://motionboard.vercel.app/motion-board-homepage-hero.jpg",
         ],
     },
 };
