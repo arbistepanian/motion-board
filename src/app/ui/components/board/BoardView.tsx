@@ -35,6 +35,7 @@ import type {
 } from "@/app/lib/types/board";
 import ListColumn from "@/app/ui/components/board/ListColumn";
 import CreateCardDialog from "@/app/ui/components/board/CreateCardDialog";
+import Page from "../Page";
 
 /* --------------------- Motion Variants ------------------ */
 const container = {
@@ -220,19 +221,17 @@ export default function BoardView() {
 
     /* ---------------- Render ---------------- */
     return (
-        <main className="relative p-6 w-screen mt-14 mx-auto min-h-[calc(100vh-56px)]">
-            <Header />
-
+        <Page>
             {loading && (
                 <>
                     <Heading level={2}>Loading…</Heading>
                     <div
-                        className="grid gap-3 mt-4"
+                        className="grid gap-4 mt-4"
                         style={{
                             gridTemplateColumns:
-                                "repeat(3, minmax(260px, 1fr))",
+                                "repeat(6, minmax(260px, 1fr))",
                         }}>
-                        {Array.from({ length: 3 }).map((_, i) => (
+                        {Array.from({ length: 6 }).map((_, i) => (
                             <div
                                 key={i}
                                 className="h-64 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] animate-pulse"
@@ -381,6 +380,6 @@ export default function BoardView() {
                     />
                 </DialogBox>
             )}
-        </main>
+        </Page>
     );
 }

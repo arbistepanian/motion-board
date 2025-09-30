@@ -13,19 +13,19 @@ interface PageProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export default function Page({ children, className, ...props }: PageProps) {
     return (
-        <div
+        <main
             className={cn(
-                "flex flex-col min-h-screen pt-16 items-center justify-start bg-[var(--color-surface)] text-[var(--color-text)]",
+                "flex flex-col min-h-screen w-screen px-6 pt-16 pb-6 items-center justify-start bg-[var(--color-surface)] text-[var(--color-text)]",
                 className
             )}
             {...props}>
             <Header />
 
-            <div className="w-full max-w-4xl px-4">
+            <div className="w-full px-4">
                 <div className="bg-[var(--color-surface)] text-[var(--color-text)]">
                     {children}
                 </div>
             </div>
-        </div>
+        </main>
     );
 }

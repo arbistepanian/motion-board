@@ -15,7 +15,7 @@ import TextInput from "../ui/components/TextInput";
 import { motion, AnimatePresence } from "framer-motion";
 import Paragraph from "../ui/components/Paragraph";
 import { useRouter } from "next/navigation";
-import Header from "../ui/components/Header";
+import Page from "../ui/components/Page";
 
 const container = {
     hidden: { opacity: 0 },
@@ -66,12 +66,10 @@ export default function Home() {
     const router = useRouter();
 
     return (
-        <main className="p-6 max-w-300 mt-14 mx-auto">
-            <Header />
-
+        <Page>
             {session && (
                 <>
-                    <section style={{ marginBottom: 16 }}>
+                    <section className="mb-4 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                         <form
                             onSubmit={async (e) => {
                                 e.preventDefault();
@@ -154,6 +152,6 @@ export default function Home() {
                     )}
                 </>
             )}
-        </main>
+        </Page>
     );
 }

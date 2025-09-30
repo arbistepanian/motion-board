@@ -10,7 +10,7 @@ export default async function HomePage() {
     const session = await getServerSession(authOptions);
 
     return (
-        <main className="min-h-screen flex items-center justify-center bg-background text-text px-4">
+        <main className="min-h-screen flex items-center justify-center px-6 bg-[var(--color-surface)] text-[var(--color-text)]">
             <div className="text-center space-y-6">
                 <Image
                     src="/motion-board-homepage-hero.jpg"
