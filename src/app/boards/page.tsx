@@ -1,28 +1,20 @@
 "use client";
 
 import { gql } from "@apollo/client";
-import { useMutation, useQuery } from "@apollo/client/react";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
-import Heading from "../ui/components/Heading";
-import Button from "../ui/components/Button";
+import { useRouter } from "next/navigation";
+import { useState, FormEvent } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import type {
     BoardsData,
     CreateBoardData,
     CreateBoardVars,
 } from "@/app/lib/types/board";
-import TextInput from "../ui/components/TextInput";
-import { motion, AnimatePresence } from "framer-motion";
-import Paragraph from "../ui/components/Paragraph";
-import { useRouter } from "next/navigation";
-import Page from "../ui/components/Page";
+import { useMutation, useQuery } from "@apollo/client/react";
 
 const container = {
     hidden: { opacity: 0 },
-    show: {
-        opacity: 1,
-        transition: { staggerChildren: 0.05 },
-    },
+    show: { opacity: 1, transition: { staggerChildren: 0.05 } },
 };
 
 const card = {
@@ -38,6 +30,7 @@ const BOARDS = gql`
         }
     }
 `;
+
 const CREATE_BOARD = gql`
     mutation ($name: String!) {
         createBoard(name: $name) {
@@ -49,70 +42,117 @@ const CREATE_BOARD = gql`
 
 export default function Home() {
     const { data: session } = useSession();
+    const router = useRouter();
+
     const {
         data: boardsData,
         loading: boardsLoading,
         error: boardsError,
         refetch,
     } = useQuery<BoardsData>(BOARDS, { skip: !session });
+
     const [createBoard] = useMutation<CreateBoardData, CreateBoardVars>(
         CREATE_BOARD
     );
+
     const [name, setName] = useState("");
     const [pending, setPending] = useState(false);
 
     const boards = boardsData?.boards ?? [];
 
-    const router = useRouter();
+    async function onCreateBoard(e: FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+        const trimmed = name.trim();
+        if (!trimmed) return;
+        setPending(true);
+        try {
+            await createBoard({ variables: { name: trimmed } });
+            setName("");
+            await refetch();
+        } finally {
+            setPending(false);
+        }
+    }
 
     return (
-        <Page>
+        <main className="mx-auto max-w-6xl px-4 py-8 text-[var(--color-text)]">
+            {/* Header */}
+            <header className="mb-6 flex items-center justify-between">
+                <h1 className="text-2xl font-semibold tracking-tight">
+                    Boards
+                </h1>
+            </header>
+
             {session && (
                 <>
-                    <section className="mb-4 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+                    {/* Create board form */}
+                    <section className="mb-6 w-full sm:w-md">
                         <form
-                            onSubmit={async (e) => {
-                                e.preventDefault();
-                                if (!name.trim()) return;
-                                setPending(true);
-                                await createBoard({ variables: { name } });
-                                setName("");
-                                setPending(false);
-                                refetch();
-                            }}
-                            className="flex justify-start items-end gap-2">
-                            <TextInput
-                                label="Board name"
-                                type="text"
-                                style={{ flex: 1 }}
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder="New board name"
-                            />
-                            <Button
-                                variation="primary"
+                            onSubmit={onCreateBoard}
+                            className="flex w-full flex-col gap-3 sm:flex-row sm:items-end">
+                            <div className="flex-1">
+                                <label
+                                    htmlFor="boardName"
+                                    className="mb-1 block text-sm text-[var(--color-subtext)]">
+                                    Board name
+                                </label>
+                                <input
+                                    id="boardName"
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="New board name"
+                                    className="
+                    w-full rounded-lg border px-3 py-2 text-sm outline-none shadow-sm
+                    border-[var(--color-border)]
+                    bg-[var(--color-surface)]
+                    placeholder:text-[var(--color-placeholder)]
+                    focus:ring-2 focus:ring-[var(--color-primary)]
+                    focus:ring-offset-2 focus:ring-offset-[var(--color-surface)]
+                  "
+                                />
+                            </div>
+
+                            <button
                                 type="submit"
-                                disabled={!name.trim() || pending}>
-                                Create
-                            </Button>
+                                disabled={!name.trim() || pending}
+                                className="
+                  inline-flex shrink-0 items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition
+                  bg-[var(--color-primary)] text-[var(--color-on-primary)]
+                  hover:bg-[var(--color-primary-hover)]
+                  active:bg-[var(--color-primary-active)]
+                  disabled:cursor-not-allowed disabled:bg-[var(--color-disabled)] disabled:text-[var(--color-on-disabled)]
+                  focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 focus:ring-offset-[var(--color-surface)]
+                ">
+                                {pending ? "Creating…" : "Create"}
+                            </button>
                         </form>
                     </section>
+
+                    {/* Error */}
                     {boardsError && (
-                        <Paragraph>Failed to load boards.</Paragraph>
+                        <p
+                            className="
+              mb-4 rounded-lg border px-3 py-2 text-sm
+              border-[var(--color-error-border)]
+              bg-[var(--color-error-bg)]
+              text-[var(--color-error-text)]
+            ">
+                            Failed to load boards.
+                        </p>
                     )}
-                    {!boardsError && boardsLoading ? (
-                        <div
-                            className="grid gap-3"
-                            style={{
-                                gridTemplateColumns:
-                                    "repeat(auto-fill, minmax(220px, 1fr))",
-                            }}>
+
+                    {/* Boards grid */}
+                    {boardsLoading ? (
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                             {Array.from({ length: 6 }).map((_, i) => (
-                                <motion.div
+                                <div
                                     key={i}
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    className="h-20 rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border)] animate-pulse"
+                                    className="
+                    h-24 animate-pulse rounded-xl border
+                    border-[var(--color-border)]
+                    bg-[var(--color-surface-alt)]
+                  "
                                 />
                             ))}
                         </div>
@@ -121,37 +161,58 @@ export default function Home() {
                             variants={container}
                             initial="hidden"
                             animate="show"
-                            style={{
-                                display: "grid",
-                                gap: 12,
-                                gridTemplateColumns:
-                                    "repeat(auto-fill, minmax(220px, 1fr))",
-                            }}>
+                            className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                             <AnimatePresence>
                                 {boards.map((b) => (
-                                    <motion.div
+                                    <motion.button
                                         key={b.id}
                                         variants={card}
-                                        layout
+                                        layout="position"
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
-                                        transition={{
-                                            type: "spring",
-                                            stiffness: 400,
-                                            damping: 30,
-                                        }}
                                         onClick={() =>
                                             router.push(`/boards/${b.id}`)
                                         }
-                                        className="bg-[var(--color-surface-alt)] hover:bg-[var(--color-surface-alt-hover)] cursor-pointer border border-[var(--color-border)] rounded-lg p-4">
-                                        <Heading level={3}>{b.name}</Heading>
-                                    </motion.div>
+                                        className="
+                      group h-24 cursor-pointer rounded-xl border p-4 text-left shadow-sm transition
+                      border-[var(--color-border)]
+                      bg-[var(--color-surface)]
+                      hover:bg-[var(--color-surface-hover)]
+                      focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 focus:ring-offset-[var(--color-surface)]
+                    ">
+                                        <div className="flex h-full items-center justify-between">
+                                            <span className="text-sm font-medium">
+                                                {b.name}
+                                            </span>
+                                            <span
+                                                className="
+                          rounded-md px-2 py-1 text-[10px] font-medium transition
+                          bg-[var(--color-accent)]
+                          text-[var(--color-on-accent)]
+                          group-hover:bg-[var(--color-accent-alt)]
+                          group-hover:text-[var(--color-on-accent-alt)]
+                        ">
+                                                Open
+                                            </span>
+                                        </div>
+                                    </motion.button>
                                 ))}
                             </AnimatePresence>
                         </motion.section>
                     )}
                 </>
             )}
-        </Page>
+
+            {!session && (
+                <div
+                    className="
+            rounded-xl border border-dashed p-6 text-center text-sm
+            border-[var(--color-border)]
+            text-[var(--color-subtext)]
+          ">
+                    Please sign in to view your boards.
+                </div>
+            )}
+        </main>
     );
 }

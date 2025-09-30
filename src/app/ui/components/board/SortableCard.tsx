@@ -16,13 +16,11 @@ export default function SortableCard({ card }: { card: Card }) {
         isSorting,
     } = useSortable({
         id: card.id,
-        // 👇 Prevent Framer-style layout animations from kicking in during sort
         animateLayoutChanges: () => false,
     });
 
     const style: React.CSSProperties = {
         transform: CSS.Transform.toString(transform),
-        // 👇 Disable CSS transition while dragging to avoid “rubber band” effect
         transition: isDragging || isSorting ? undefined : transition,
         opacity: isDragging ? 0.4 : 1,
         cursor: "grab",

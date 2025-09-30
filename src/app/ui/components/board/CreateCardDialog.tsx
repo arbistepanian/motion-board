@@ -1,6 +1,7 @@
 "use client";
 
 import Button from "@/app/ui/components/Button";
+import Label from "../Label";
 
 export default function CreateCardDialog({
     titleRef,
@@ -22,14 +23,14 @@ export default function CreateCardDialog({
                 onSubmit();
             }}
             className="flex flex-col gap-3">
-            <label className="text-sm opacity-80">Title</label>
+            <Label className="text-sm opacity-80">Title</Label>
             <input
                 ref={titleRef}
                 className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2"
                 placeholder="Card title"
                 autoFocus
             />
-            <label className="text-sm opacity-80">Description (optional)</label>
+            <Label className="text-sm opacity-80">Description (optional)</Label>
             <input
                 ref={descRef}
                 className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2"

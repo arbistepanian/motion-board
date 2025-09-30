@@ -15,7 +15,7 @@ export default function Page({ children, className, ...props }: PageProps) {
     return (
         <main
             className={cn(
-                "flex flex-col min-h-screen w-screen px-6 pt-16 pb-6 items-center justify-start bg-[var(--color-surface)] text-[var(--color-text)]",
+                "flex flex-col min-h-screen w-screen px-6 pt-18 pb-6 items-center justify-start bg-[var(--color-surface)] text-[var(--color-text)]",
                 className
             )}
             {...props}>

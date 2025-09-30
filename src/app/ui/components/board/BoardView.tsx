@@ -4,13 +4,6 @@ import { useMemo, useRef, useState, FormEvent } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useApolloClient, useMutation, useQuery } from "@apollo/client/react";
 
-import Header from "@/app/ui/components/Header";
-import Heading from "@/app/ui/components/Heading";
-import Paragraph from "@/app/ui/components/Paragraph";
-import Button from "@/app/ui/components/Button";
-import TextInput from "@/app/ui/components/TextInput";
-import DialogBox from "@/app/ui/components/DialogBox";
-
 import {
     DndContext,
     DragOverlay,
@@ -33,8 +26,10 @@ import type {
     CreateCardData,
     CreateCardVars,
 } from "@/app/lib/types/board";
+
 import ListColumn from "@/app/ui/components/board/ListColumn";
 import CreateCardDialog from "@/app/ui/components/board/CreateCardDialog";
+import DialogBox from "@/app/ui/components/DialogBox";
 import Page from "../Page";
 
 /* --------------------- Motion Variants ------------------ */
@@ -142,7 +137,6 @@ export default function BoardView() {
         setTargetList(list);
         setCardDialogOpen(true);
     }
-
     function closeCardDialog() {
         setCardDialogOpen(false);
         setTargetList(null);
@@ -222,11 +216,30 @@ export default function BoardView() {
     /* ---------------- Render ---------------- */
     return (
         <Page>
+            {/* Top bar */}
+            <header className="mb-4 flex items-center gap-3">
+                <button
+                    onClick={() => router.push("/")}
+                    className="
+            inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition
+            border-[var(--color-border)]
+            bg-[var(--color-surface)]
+            hover:bg-[var(--color-surface-hover)]
+            focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 focus:ring-offset-[var(--color-surface)]
+          ">
+                    ← Back
+                </button>
+                <h2 className="m-0 text-2xl font-semibold">
+                    {board?.name ?? "Board"}
+                </h2>
+            </header>
+
+            {/* Loading */}
             {loading && (
                 <>
-                    <Heading level={2}>Loading…</Heading>
+                    <h3 className="text-lg font-medium">Loading…</h3>
                     <div
-                        className="grid gap-4 mt-4"
+                        className="mt-4 grid gap-4"
                         style={{
                             gridTemplateColumns:
                                 "repeat(6, minmax(260px, 1fr))",
@@ -234,134 +247,169 @@ export default function BoardView() {
                         {Array.from({ length: 6 }).map((_, i) => (
                             <div
                                 key={i}
-                                className="h-64 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] animate-pulse"
+                                className="h-64 animate-pulse rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)]"
                             />
                         ))}
                     </div>
                 </>
             )}
 
+            {/* Error */}
             {error && (
-                <>
-                    <Heading level={2}>Board</Heading>
-                    <Paragraph>
-                        {error ? error.message : "Failed to load board."}
-                    </Paragraph>
-                    <Button
-                        variation="secondary"
-                        onClick={() => router.push("/boards")}>
-                        Go back
-                    </Button>
-                </>
+                <div
+                    className="
+            mb-4 rounded-lg border px-3 py-2 text-sm
+            border-[var(--color-error-border)]
+            bg-[var(--color-error-bg)]
+            text-[var(--color-error-text)]
+          ">
+                    {error?.message ?? "Failed to load board."}
+                    <div className="mt-3">
+                        <button
+                            onClick={() => router.push("/boards")}
+                            className="
+                inline-flex items-center rounded-lg border px-3 py-1.5 text-sm transition
+                border-[var(--color-border)]
+                bg-[var(--color-surface)]
+                hover:bg-[var(--color-surface-hover)]
+              ">
+                            Go back
+                        </button>
+                    </div>
+                </div>
             )}
 
+            {/* Not found */}
             {!error && !loading && !board && (
-                <>
-                    <Heading level={2}>Board not found</Heading>
-                    <Paragraph>
+                <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+                    <h3 className="mb-1 text-lg font-medium">
+                        Board not found
+                    </h3>
+                    <p className="text-sm text-[var(--color-subtext)]">
                         This board doesn’t exist or you don’t have access.
-                    </Paragraph>
-                    <Button
-                        variation="secondary"
-                        onClick={() => router.push("/boards")}>
-                        Go back
-                    </Button>
-                </>
+                    </p>
+                    <div className="mt-3">
+                        <button
+                            onClick={() => router.push("/boards")}
+                            className="
+                inline-flex items-center rounded-lg border px-3 py-1.5 text-sm transition
+                border-[var(--color-border)]
+                bg-[var(--color-surface)]
+                hover:bg-[var(--color-surface-hover)]
+              ">
+                            Go back
+                        </button>
+                    </div>
+                </div>
             )}
 
+            {/* Board */}
             {!error && !loading && board && (
-                <>
-                    <header className="flex items-center gap-3 mb-4">
-                        <Button
-                            variation="secondary"
-                            icon="arrowLeft"
-                            onClick={() => router.push("/")}>
-                            Back
-                        </Button>
-                        <Heading level={2} style={{ margin: 0 }}>
-                            {board.name}
-                        </Heading>
-                    </header>
-
-                    <DndContext
-                        sensors={sensors}
-                        onDragStart={handleDragStart}
-                        onDragEnd={handleDragEnd}
-                        collisionDetection={closestCenter}>
-                        <motion.section
-                            variants={container}
-                            initial="hidden"
-                            animate="show"
-                            className="overflow-x-auto h-full"
-                            style={{
-                                display: "grid",
-                                gap: 16,
-                                gridTemplateColumns: `repeat(${Math.max(
-                                    lists.length + 1,
-                                    3
-                                )}, 300px)`,
-                            }}>
-                            <AnimatePresence initial={false}>
-                                {lists.map((list) => (
-                                    <motion.div
-                                        key={list.id}
-                                        variants={listVariant}
-                                        layout
-                                        className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3">
-                                        <ListColumn
-                                            list={list}
-                                            onAddCard={() =>
-                                                openCardDialog(list)
-                                            }
-                                        />
-                                    </motion.div>
-                                ))}
+                <DndContext
+                    sensors={sensors}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                    collisionDetection={closestCenter}>
+                    <motion.section
+                        variants={container}
+                        initial="hidden"
+                        animate="show"
+                        className="h-full overflow-x-auto"
+                        style={{
+                            display: "grid",
+                            gap: 16,
+                            gridTemplateColumns: `repeat(${Math.max(
+                                lists.length + 1,
+                                3
+                            )}, 300px)`,
+                        }}>
+                        <AnimatePresence initial={false}>
+                            {/* Lists */}
+                            {lists.map((list) => (
                                 <motion.div
-                                    key="add-list"
+                                    key={list.id}
                                     variants={listVariant}
                                     layout
-                                    className="rounded-xl border border-dashed border-[var(--color-border)] bg-transparent p-3 flex flex-col gap-2 justify-start items-start">
-                                    <Heading
-                                        level={4}
-                                        style={{ marginBottom: 8 }}>
-                                        Add a list
-                                    </Heading>
-                                    <form
-                                        onSubmit={onAddList}
-                                        className="flex gap-2">
-                                        <TextInput
-                                            ref={listInputRef}
-                                            type="text"
-                                            name="title"
-                                            placeholder="List title"
-                                        />
-                                        <Button
-                                            variation="primary"
-                                            type="submit"
-                                            disabled={creatingList}>
-                                            {creatingList ? "Adding…" : "Add"}
-                                        </Button>
-                                    </form>
+                                    className="
+                    rounded-xl border p-3
+                    border-[var(--color-border)]
+                    bg-[var(--color-surface)]
+                  ">
+                                    <ListColumn
+                                        list={list}
+                                        onAddCard={() => openCardDialog(list)}
+                                    />
                                 </motion.div>
-                            </AnimatePresence>
-                        </motion.section>
+                            ))}
 
-                        <DragOverlay dropAnimation={null}>
-                            {activeCard ? (
-                                <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-3 shadow-xl">
-                                    <div className="text-sm font-medium">
-                                        {activeCard.title}
-                                    </div>
-                                    {activeCard.description && (
-                                        <div className="text-xs opacity-70 mt-1">
-                                            {activeCard.description}
-                                        </div>
-                                    )}
+                            {/* Add List column */}
+                            <motion.div
+                                key="add-list"
+                                variants={listVariant}
+                                layout
+                                className="
+                  flex flex-col items-start justify-start gap-2 rounded-xl border border-dashed p-3
+                  border-[var(--color-border)]
+                  bg-transparent
+                ">
+                                <h4 className="mb-2 text-base font-semibold">
+                                    Add a list
+                                </h4>
+                                <form
+                                    onSubmit={onAddList}
+                                    className="flex gap-2">
+                                    <input
+                                        ref={listInputRef}
+                                        type="text"
+                                        name="title"
+                                        placeholder="List title"
+                                        className="
+                      rounded-md border px-3 py-2 text-sm outline-none
+                      border-[var(--color-border)]
+                      bg-[var(--color-surface)]
+                      placeholder:text-[var(--color-placeholder)]
+                      focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 focus:ring-offset-[var(--color-surface)]
+                    "
+                                    />
+                                    <button
+                                        type="submit"
+                                        disabled={creatingList}
+                                        className="
+                      inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-medium transition
+                      bg-[var(--color-primary)] text-[var(--color-on-primary)]
+                      hover:bg-[var(--color-primary-hover)]
+                      active:bg-[var(--color-primary-active)]
+                      disabled:cursor-not-allowed disabled:bg-[var(--color-disabled)] disabled:text-[var(--color-on-disabled)]
+                      focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 focus:ring-offset-[var(--color-surface)]
+                    ">
+                                        {creatingList ? "Adding…" : "Add"}
+                                    </button>
+                                </form>
+                            </motion.div>
+                        </AnimatePresence>
+                    </motion.section>
+
+                    {/* Drag overlay */}
+                    <DragOverlay dropAnimation={null}>
+                        {activeCard ? (
+                            <div
+                                className="
+                  rounded-lg border p-3 shadow-xl
+                  border-[var(--color-border)]
+                  bg-[var(--color-surface)]
+                ">
+                                <div className="text-sm font-medium">
+                                    {activeCard.title}
                                 </div>
-                            ) : null}
-                        </DragOverlay>
-                    </DndContext>
-                </>
+                                {activeCard.description && (
+                                    <div className="mt-1 text-xs opacity-70">
+                                        {activeCard.description}
+                                    </div>
+                                )}
+                            </div>
+                        ) : null}
+                    </DragOverlay>
+                </DndContext>
             )}
 
             {/* Create Card Dialog */}
